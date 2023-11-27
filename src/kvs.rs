@@ -16,7 +16,7 @@ impl KeyValueStore for KeyValueStoreService {
         &self,
         request: Request<EchoRequest>,
     ) -> Result<Response<EchoReply>, Status> {
-        println!("Received request from {:?}", request.remote_addr());
+        println!("INFO: Received request from {:?}", request.remote_addr());
 
         let echo_request = request.into_inner();
         let echo_message = echo_request.message;
@@ -27,8 +27,10 @@ impl KeyValueStore for KeyValueStoreService {
     }
 }
 
-async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse()?;
+pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
+    let addr = "127.0.0.1:50051".parse()?;
+
+    println!("INFO: Starting gRPC server on {:?}", addr);
 
     Server::builder()
         .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
