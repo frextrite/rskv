@@ -5,7 +5,7 @@ pub mod kvs_proto_gen {
 }
 
 use kvs_proto_gen::key_value_store_server::{KeyValueStore, KeyValueStoreServer};
-use kvs_proto_gen::{EchoRequest, EchoReply};
+use kvs_proto_gen::{EchoRequest, EchoReply, GetRequest, GetReply, SetRequest, SetReply};
 
 #[derive(Debug, Default)]
 pub struct KeyValueStoreService {}
@@ -24,6 +24,14 @@ impl KeyValueStore for KeyValueStoreService {
         let reply = EchoReply { message: echo_message };
 
         Ok(Response::new(reply))
+    }
+
+    async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetReply>, Status> {
+        todo!()
+    }
+
+    async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetReply>, Status> {
+        todo!()
     }
 }
 
