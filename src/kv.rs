@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug, Default)]
 pub struct KeyValue {
     store: HashMap<String, String>,
 }

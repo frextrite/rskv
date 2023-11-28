@@ -22,8 +22,7 @@ message SetRequest {
 }
 
 message SetReply {
-    optional string key = 1;
-    optional string value = 2;
+    optional string old_value = 1;
 }
 
 message GetRequest {
@@ -31,6 +30,5 @@ message GetRequest {
 }
 
 message GetReply {
-    optional string key = 1;
-    optional string value = 2;
+    optional string value = 1;
 }

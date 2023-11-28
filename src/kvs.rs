@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use tonic::{transport::Server, Request, Response, Status};
 
 pub mod kvs_proto_gen {
@@ -7,8 +9,12 @@ pub mod kvs_proto_gen {
 use kvs_proto_gen::key_value_store_server::{KeyValueStore, KeyValueStoreServer};
 use kvs_proto_gen::{EchoRequest, EchoReply, GetRequest, GetReply, SetRequest, SetReply};
 
+use crate::kv::KeyValue;
+
 #[derive(Debug, Default)]
-pub struct KeyValueStoreService {}
+pub struct KeyValueStoreService {
+    kv: Arc<Mutex<KeyValue>>,
+}
 
 #[tonic::async_trait]
 impl KeyValueStore for KeyValueStoreService {
@@ -27,11 +33,19 @@ impl KeyValueStore for KeyValueStoreService {
     }
 
     async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetReply>, Status> {
-        todo!()
+        let mut kv = self.kv.lock().unwrap();
+        let req = request.into_inner();
+        let old_value = kv.set(req.key.clone(), req.value);
+
+        Ok(Response::new(SetReply { old_value: old_value }))
     }
 
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetReply>, Status> {
-        todo!()
+        let kv = self.kv.lock().unwrap();
+        let req = request.into_inner();
+        let value = kv.get(req.key.clone());
+
+        Ok(Response::new(GetReply { value: value.cloned() }))
     }
 }
 
