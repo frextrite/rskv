@@ -18,12 +18,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = if cfg!(unix) {
         "\0/tmp/key_value_store"
     } else {
-        "http://127.0.0.1:50051"
+        "127.0.0.1:50051"
     };
 
     println!("INFO: Connecting to remote endpoint {}", addr);
 
-    let channel = Endpoint::try_from("http://127.0.0.1:50051/")? // TODO: try removing this?
+    let channel = Endpoint::try_from("http://localhost/")? // TODO: try removing this?
         .connect_with_connector(service_fn(move |_| Stream::connect(addr)))
         .await?;
 

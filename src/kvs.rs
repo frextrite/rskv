@@ -76,12 +76,17 @@ pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
     let addr = if cfg!(unix) {
         "\0/tmp/key_value_store"
     } else {
-        "http://127.0.0.1:50051"
+        "127.0.0.1:50051"
     };
-    let listener = Listener::bind(addr)?;
-    let stream = ListenerStream::new(listener);
 
     println!("INFO: Starting gRPC server on {}", addr);
+
+    let stream = ListenerStream::new(
+        #[cfg(unix)]
+        Listener::bind(addr)?,
+        #[cfg(windows)]
+        Listener::bind(addr).await?,
+    );
 
     Server::builder()
         .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
