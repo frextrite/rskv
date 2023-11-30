@@ -1,14 +1,14 @@
 use std::sync::{Arc, Mutex};
 
 #[cfg(windows)]
-use tokio::net::TcpListener;
+use tokio::net::TcpListener as Listener;
 #[cfg(windows)]
-use tokio_stream::wrappers::TcpListenerStream;
+use tokio_stream::wrappers::TcpListenerStream as ListenerStream;
 
 #[cfg(unix)]
-use tokio::net::UnixListener;
+use tokio::net::UnixListener as Listener;
 #[cfg(unix)]
-use tokio_stream::wrappers::UnixListenerStream;
+use tokio_stream::wrappers::UnixListenerStream as ListenerStream;
 
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -63,26 +63,16 @@ impl KeyValueStore for KeyValueStoreService {
     }
 }
 
-#[cfg(windows)]
 pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "127.0.0.1:50051";
-    let listener = TcpListener::bind(addr).await?;
-    let stream = TcpListenerStream::new(listener);
+    let addr = if cfg!(unix) {
+        "\0/tmp/key_value_store"
+    } else {
+        "http://127.0.0.1:50051"
+    };
+    let listener = Listener::bind(addr)?;
+    let stream = ListenerStream::new(listener);
 
     println!("INFO: Starting gRPC server on {}", addr);
-
-    Server::builder()
-        .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
-        .serve_with_incoming(stream)
-        .await?;
-
-    Ok(())
-}
-
-#[cfg(unix)]
-pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
-    let listener = UnixListener::bind("\0/tmp/key_value_store")?;
-    let stream = UnixListenerStream::new(listener);
 
     Server::builder()
         .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
