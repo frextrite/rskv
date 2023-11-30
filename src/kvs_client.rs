@@ -13,37 +13,43 @@ use kvs_proto_gen::EchoRequest;
 #[cfg(windows)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-   let mut client = KeyValueStoreClient::connect("http://127.0.0.1:50051/").await?;
+    let mut client = KeyValueStoreClient::connect("http://127.0.0.1:50051/").await?;
 
-   let request = tonic::Request::new(EchoRequest {
-    message: "sphinx of black quartz, judge my vow".to_string(),
-   });
+    let request = tonic::Request::new(EchoRequest {
+        message: "sphinx of black quartz, judge my vow".to_string(),
+    });
 
-   let response = client.echo_me(request).await?;
+    let response = client.echo_me(request).await?;
 
-   println!("INFO: Received response as \"{}\"", response.into_inner().message);
+    println!(
+        "INFO: Received response as \"{}\"",
+        response.into_inner().message
+    );
 
-   Ok(())
+    Ok(())
 }
 
 #[cfg(unix)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-   let channel = Endpoint::try_from("http://127.0.0.1:50051/")?
+    let channel = Endpoint::try_from("http://127.0.0.1:50051/")?
         .connect_with_connector(service_fn(|_| {
             UnixStream::connect("\0/tmp/key_value_store")
         }))
         .await?;
 
-   let mut client = KeyValueStoreClient::new(channel);
+    let mut client = KeyValueStoreClient::new(channel);
 
-   let request = tonic::Request::new(EchoRequest {
-    message: "sphinx of black quartz, judge my vow".to_string(),
-   });
+    let request = tonic::Request::new(EchoRequest {
+        message: "sphinx of black quartz, judge my vow".to_string(),
+    });
 
-   let response = client.echo_me(request).await?;
+    let response = client.echo_me(request).await?;
 
-   println!("INFO: Received response as \"{}\"", response.into_inner().message);
+    println!(
+        "INFO: Received response as \"{}\"",
+        response.into_inner().message
+    );
 
-   Ok(())
+    Ok(())
 }
