@@ -7,7 +7,9 @@ pub struct KeyValue {
 
 impl KeyValue {
     pub fn new() -> KeyValue {
-        KeyValue { store: HashMap::new() }
+        KeyValue {
+            store: HashMap::new(),
+        }
     }
 
     pub fn set(&mut self, key: String, val: String) -> Option<String> {
@@ -38,7 +40,10 @@ mod tests {
         assert_eq!(kv.set("key".to_string(), "val".to_string()), None);
         assert_eq!(kv.get("key".to_string()), Some("val".to_string()).as_ref());
 
-        assert_eq!(kv.set("key".to_string(), "val2".to_string()), Some("val".to_string()));
+        assert_eq!(
+            kv.set("key".to_string(), "val2".to_string()),
+            Some("val".to_string())
+        );
         assert_eq!(kv.get("key".to_string()), Some("val2".to_string()).as_ref());
     }
 }

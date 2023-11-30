@@ -1,10 +1,10 @@
 use tonic::transport::Endpoint;
 use tower::service_fn;
 
-#[cfg(unix)]
-use tokio::net::UnixStream as Stream;
 #[cfg(windows)]
 use tokio::net::TcpStream as Stream;
+#[cfg(unix)]
+use tokio::net::UnixStream as Stream;
 
 pub mod kvs_proto_gen {
     tonic::include_proto!("kvs");
@@ -24,9 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("INFO: Connecting to remote endpoint {}", addr);
 
     let channel = Endpoint::try_from("http://127.0.0.1:50051/")? // TODO: try removing this?
-        .connect_with_connector(service_fn(move |_| {
-            Stream::connect(addr)
-        }))
+        .connect_with_connector(service_fn(move |_| Stream::connect(addr)))
         .await?;
 
     let mut client = KeyValueStoreClient::new(channel);
