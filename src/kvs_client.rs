@@ -1,7 +1,10 @@
-#[cfg(unix)]
-use tokio::net::UnixStream;
 use tonic::transport::Endpoint;
 use tower::service_fn;
+
+#[cfg(unix)]
+use tokio::net::UnixStream as Stream;
+#[cfg(windows)]
+use tokio::net::TcpStream as Stream;
 
 pub mod kvs_proto_gen {
     tonic::include_proto!("kvs");
@@ -10,31 +13,19 @@ pub mod kvs_proto_gen {
 use kvs_proto_gen::key_value_store_client::KeyValueStoreClient;
 use kvs_proto_gen::EchoRequest;
 
-#[cfg(windows)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = KeyValueStoreClient::connect("http://127.0.0.1:50051/").await?;
+    let addr = if cfg!(unix) {
+        "\0/tmp/key_value_store"
+    } else {
+        "http://127.0.0.1:50051"
+    };
 
-    let request = tonic::Request::new(EchoRequest {
-        message: "sphinx of black quartz, judge my vow".to_string(),
-    });
+    println!("INFO: Connecting to remote endpoint {}", addr);
 
-    let response = client.echo_me(request).await?;
-
-    println!(
-        "INFO: Received response as \"{}\"",
-        response.into_inner().message
-    );
-
-    Ok(())
-}
-
-#[cfg(unix)]
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let channel = Endpoint::try_from("http://127.0.0.1:50051/")?
-        .connect_with_connector(service_fn(|_| {
-            UnixStream::connect("\0/tmp/key_value_store")
+    let channel = Endpoint::try_from("http://127.0.0.1:50051/")? // TODO: try removing this?
+        .connect_with_connector(service_fn(move |_| {
+            Stream::connect(addr)
         }))
         .await?;
 
