@@ -34,12 +34,12 @@ impl KeyValueStore for KeyValueStoreService {
 
     async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetReply>, Status> {
         println!("INFO: Received SET request {:?} from {:?}", request.get_ref(), request.remote_addr());
-        
+
         let mut kv = self.kv.lock().unwrap();
         let req = request.into_inner();
         let old_value = kv.set(req.key.clone(), req.value);
 
-        Ok(Response::new(SetReply { old_value: old_value }))
+        Ok(Response::new(SetReply { old_value }))
     }
 
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetReply>, Status> {
