@@ -1,5 +1,9 @@
 use std::sync::{Arc, Mutex};
 
+#[cfg(unix)]
+use tokio::net::UnixListener;
+use tokio_stream::wrappers::UnixListenerStream;
+
 use tonic::{transport::Server, Request, Response, Status};
 
 pub mod kvs_proto_gen {
@@ -53,6 +57,7 @@ impl KeyValueStore for KeyValueStoreService {
     }
 }
 
+#[cfg(windows)]
 pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:50051".parse()?;
 
@@ -61,6 +66,19 @@ pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
     Server::builder()
         .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
         .serve(addr)
+        .await?;
+
+    Ok(())
+}
+
+#[cfg(unix)]
+pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
+    let listener = UnixListener::bind("\0/tmp/key_value_store")?;
+    let stream = UnixListenerStream::new(listener);
+
+    Server::builder()
+        .add_service(KeyValueStoreServer::new(KeyValueStoreService::default()))
+        .serve_with_incoming(stream)
         .await?;
 
     Ok(())
