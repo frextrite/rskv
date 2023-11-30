@@ -76,7 +76,7 @@ pub async fn run_key_value_store() -> Result<(), Box<dyn std::error::Error>> {
     let addr = if cfg!(unix) {
         "\0/tmp/key_value_store"
     } else {
-        "127.0.0.1:50051"
+        "[::1]:50051"
     };
 
     println!("INFO: Starting gRPC server on {}", addr);
